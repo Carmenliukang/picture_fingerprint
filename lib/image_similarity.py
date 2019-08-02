@@ -19,6 +19,7 @@ from io import BytesIO  # 用于将URL 返回结果全部转换成字节流方�
 
 
 class PictureFingerprint(object):
+    ''' 封装的一个用于计算图片相似度的基类，使用的是 dhash 方式进行说明 '''
 
     def __init__(self):
         self.headers = {
@@ -26,6 +27,11 @@ class PictureFingerprint(object):
         }
 
     def request_get(self, url):
+        '''
+        获取 图片 字节流
+        :param url:
+        :return:
+        '''
         try:
             with contextlib.closing(requests.get(url=url, headers=self.headers, stream=True)) as req:
                 content = req.content
@@ -36,7 +42,7 @@ class PictureFingerprint(object):
 
     def get_res(self, original_image_hash, contrast_image_hash):
         '''
-        用于获取基本的配置
+        获取汉明距离
         :param original_image_hash:原图hash数值
         :param contrast_image_hash:对比图hash数值
         :return:
@@ -51,11 +57,17 @@ class PictureFingerprint(object):
         return num
 
     def get_phash(self, image):
+        '''
+        获取图片的 dhash 数值
+        :param image: PIL 势力
+        :return: string 图片 dhash 结果
+        '''
         phash_res = str(imagehash.dhash(image))
         return phash_res
 
-    def get_image(self, image_url):
+    def get_image_by_url(self, image_url):
         '''
+        获取 图片
         :param image_url: 图片链接
         :return: status succ|fail Image class
         '''
@@ -70,7 +82,7 @@ class PictureFingerprint(object):
 
     def get_image_by_filename(self, image_name):
         '''
-        :param image_url: 图片链接
+        :param image_name: 图片路径
         :return: status succ|fail Image class
         '''
         try:
@@ -83,8 +95,8 @@ class PictureFingerprint(object):
 
     def image_check_res(self, original_image_url, contrast_image_url):
         try:
-            original_status, original_image = self.get_image(original_image_url)
-            contrast_status, contrast_image = self.get_image(contrast_image_url)
+            original_status, original_image = self.get_image_by_url(original_image_url)
+            contrast_status, contrast_image = self.get_image_by_url(contrast_image_url)
             if original_status != "succ" or contrast_status != "succ":
                 print("fail")
                 return 16
@@ -97,6 +109,12 @@ class PictureFingerprint(object):
             return 16
 
     def image_check_res_by_filename(self, original_image_name, contrast_image_name):
+        '''
+        获取 图片相似度的结果
+        :param original_image_name: 原始图
+        :param contrast_image_name: 对比图
+        :return:
+        '''
         try:
             original_status, original_image = self.get_image_by_filename(original_image_name)
             contrast_status, contrast_image = self.get_image_by_filename(contrast_image_name)
@@ -110,14 +128,3 @@ class PictureFingerprint(object):
         except Exception as e:
             print(e)
             return 16
-
-
-if __name__ == '__main__':
-    pic_url = 'https://sf6-ttcdn-tos.pstatp.com/obj/temai/Fl8I389Bn_jDByCjmCV9bs_GO4SN.JPG'
-    image_url = 'https://sf6-ttcdn-tos.pstatp.com/obj/temai/Fq3KhSPbczC6A0yAV4MEb0oNSiG-www800-800'
-    # image_url = "https://sf6-ttcdn-tos.pstatp.com/obj/temai/Fl8I389Bn_jDByCjmCV9bs_GO4SN.JPG"
-    picture_fingerprint = PictureFingerprint()
-    # res = picture_fingerprint.image_check_res(pic_url, image_url)
-
-    res = picture_fingerprint.image_check_res_by_filename("../image/1", "../image/2")
-    print(res)
