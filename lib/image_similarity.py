@@ -4,11 +4,6 @@
 # @Author  : liukang
 # @FileName: run.py
 
-from gevent import monkey
-
-# 关闭相关的 thread 模块
-monkey.patch_all(thread=False)
-
 import ssl
 
 ssl._create_default_https_context = ssl._create_unverified_context
@@ -16,12 +11,11 @@ ssl._create_default_https_context = ssl._create_unverified_context
 import sys
 
 sys.path.append('../')
-
-import contextlib
+import requests
 import imagehash
+import contextlib
 from PIL import Image
 from io import BytesIO  # 用于将URL 返回结果全部转换成字节流方式去处理
-from lib.requests_proxy import requests_get
 
 
 class PictureFingerprint(object):
@@ -32,24 +26,13 @@ class PictureFingerprint(object):
         }
 
     def request_get(self, url):
-        # try:
-        #     with contextlib.closing(requests.get(url=url, headers=self.headers, stream=True)) as req:
-        #         content = req.content
-        #     return "succ", content
-        # except Exception as e:
-        #     print(e)
-        #     return "fail", ''
-
-        for i in range(4):
-            try:
-                # with contextlib.closing(requests.get(url=url, headers=self.headers, stream=True)) as req:
-                with contextlib.closing(requests_get(url=url, headers=self.headers)) as req:
-                    content = req.content
-                return "succ", content
-            except Exception as e:
-                print(e)
-        print("循环四次依然有问题")
-        return "fail", ""
+        try:
+            with contextlib.closing(requests.get(url=url, headers=self.headers, stream=True)) as req:
+                content = req.content
+            return "succ", content
+        except Exception as e:
+            print(e)
+            return "fail", ''
 
     def get_res(self, original_image_hash, contrast_image_hash):
         '''
@@ -127,14 +110,6 @@ class PictureFingerprint(object):
         except Exception as e:
             print(e)
             return 16
-
-    def get_image_hash(self, file_name):
-        original_status, original_image = self.get_image_by_filename(file_name)
-        original_image_hash = self.get_phash(original_image)
-        return original_image_hash
-
-    def get_image_check_res(self, original_image_hash, contrast_image_hash):
-        return self.get_res(original_image_hash, contrast_image_hash)
 
 
 if __name__ == '__main__':
