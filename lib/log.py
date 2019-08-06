@@ -16,6 +16,7 @@ class Log(object):
         self.specified_name = specified_name
         self.lever = lever
         self._init()
+        self.all_log(all_file="log/all.log")
 
     def _init(self):
         self.logger = logging.getLogger(self.specified_name)
